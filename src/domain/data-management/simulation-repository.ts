@@ -1,33 +1,42 @@
 import { SimulationRepositoryI } from "@/adapter/interfaces/simulation-repository-interface";
 import { Simulation } from "./Entities/simulation";
-import { SimulationParameters } from "./Entities/simulation-parameters";
 
-export class SimulationRepositoryMock implements SimulationRepositoryI {
+export class SimulationRepository implements SimulationRepositoryI {
+
+  private storagePrefix = "simulation_";
+
+  private getStorageKey(id: string): string {
+    return `${this.storagePrefix}${id}`;
+  }
+
   async save(simulation: Simulation): Promise<void> {
-    // Simula sucesso sem armazenar
-    if (!simulation.id) {
-      simulation.id = "mock-id";
-    }
-    return Promise.resolve();
+    if (simulation.id) {
+      this.delete(simulation.id);
+    } 
+    simulation.id = crypto.randomUUID();
+    localStorage.setItem(this.getStorageKey(simulation.id), JSON.stringify(simulation));
   }
 
   async getById(id: string): Promise<Simulation | null> {
-    // Retorna um objeto vazio para manter a interface
-    return Promise.resolve(new Simulation("mockid","mockname",new SimulationParameters(0,0,0,0,0,0,0,0,"normal")));
+    let data = localStorage.getItem(this.getStorageKey(id));
+    return data ? JSON.parse(data) : null;
   }
 
   async getAll(): Promise<Simulation[]> {
-    // Retorna array vazio
-    return Promise.resolve([]);
+    let simulations: Simulation[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      let key = localStorage.key(i);
+      if (key && key.startsWith(this.storagePrefix)) {
+        let data = localStorage.getItem(key);
+        if (data) {
+          simulations.push(JSON.parse(data));
+        }
+      }
+    }
+    return simulations;
   }
 
   async delete(id: string): Promise<void> {
-    // Simula sucesso sem ação real
-    return Promise.resolve();
-  }
-
-  // Opcional: método para verificar se as funções foram chamadas
-  _getCallLog(): string[] {
-    return [];
+    localStorage.removeItem(this.getStorageKey(id));
   }
 }
