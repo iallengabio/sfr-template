@@ -1,0 +1,13 @@
+@startuml CatracaDiagrama
+/'package Domain.SimulationEngine {}'/
+class Catraca {
+    - id_catraca: number
+    - aluno: Aluno | undefined
+    - ocupado: Boolean
+
+    + AddAluno(): void
+    + DelAluno(): Aluno
+    + verificarOcupado(): Boolean
+    + alterarStatus(): void
+}
+@enduml
